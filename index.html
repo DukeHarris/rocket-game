@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rocket Hull Builder — Materials Science Workshop</title>
+    <title>Rocket Builder</title>
     <meta name="description"
         content="Build a rocket hull by selecting materials and launch it into space! A materials science workshop game.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -615,16 +615,71 @@
         .launch-phase-wrapper {
             max-width: 900px;
             margin: 0 auto;
+            transition: all 0.3s ease;
+        }
+
+        /* ── Launch Mode Modifications ─────────────────────── */
+        body.launch-mode {
+            overflow: hidden;
+        }
+
+        body.launch-mode header {
+            display: none;
+        }
+
+        body.launch-mode .app {
+            max-width: 100%;
+            height: 100vh;
+            padding: 1rem;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.launch-mode #launch-phase {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.launch-mode .launch-phase-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            /* Wider for full screen feel */
+        }
+
+        body.launch-mode .launch-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        body.launch-mode .sky {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+            /* Important for flex children */
         }
 
         .launch-phase-wrapper .launch-btn {
             font-size: 1.6rem;
-            padding: 1.4rem;
+            padding: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .launch-phase-wrapper .back-btn {
+            margin-top: 0.5rem;
         }
 
         .launch-phase-wrapper .card-title {
             font-size: 1.2rem;
             letter-spacing: 2px;
+            margin-bottom: 0.8rem;
         }
 
         /* ── Responsive Tweaks ─────────────────────────────── */
@@ -643,8 +698,8 @@
 <body>
     <div class="app">
         <header>
-            <h1>🚀 Rocket Hull Builder</h1>
-            <p id="header-subtitle">Select 5 material units to build your rocket hull and launch it into space!</p>
+            <h1>🚀 Rocket Material Optimization System</h1>
+            <p id="header-subtitle">Select 5 material units to build your rocket and launch it into space!</p>
         </header>
 
         <!-- ═══ PREPARATION PHASE ═══ -->
@@ -883,6 +938,7 @@
         // ── Phase Switching ─────────────────────────────────────
         function enterLaunchPhase() {
             currentPhase = 'launch';
+            document.body.classList.add('launch-mode');
             prepPhaseEl.classList.add('phase-hidden');
             launchPhaseEl.classList.remove('phase-hidden');
             headerSubtitle.textContent = 'Prepare for launch!';
@@ -899,6 +955,7 @@
 
         function backToPreparation() {
             currentPhase = 'preparation';
+            document.body.classList.remove('launch-mode');
             launchPhaseEl.classList.add('phase-hidden');
             prepPhaseEl.classList.remove('phase-hidden');
             headerSubtitle.textContent = 'Select 5 material units to build your rocket hull and launch it into space!';

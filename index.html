@@ -779,7 +779,7 @@
         const MATERIALS = [
             { name: "Stainless Steel (304)", density: 1, strength: 3, temp: 3, toughness: 5, formability: 3, cost: 100 },
             { name: "Aluminum Alloy (7075)", density: 4, strength: 3, temp: 2, toughness: 3, formability: 5, cost: 150 },
-            { name: "Magnesium Alloy (AZ31)", density: 4, strength: 1, temp: 2, toughness: 3, formability: 4, cost: 200 },
+            { name: "Magnesium Alloy (AZ31)", density: 4, strength: 1, temp: 2, toughness: 2, formability: 4, cost: 200 },
             { name: "Titanium (Ti-6Al-4V)", density: 3, strength: 5, temp: 3, toughness: 4, formability: 3, cost: 400 },
             { name: "Inconel 718", density: 1, strength: 4, temp: 4, toughness: 5, formability: 2, cost: 500 },
             { name: "Carbon Fiber (CFRP)", density: 5, strength: 5, temp: 2, toughness: 3, formability: 2, cost: 500 },
@@ -1034,7 +1034,20 @@
                             statusMessage.textContent = '💥 Hull cracked! Acoustic vibrations were too intense. Range halved!';
                             statusMessage.classList.add('warn', 'visible');
                         } else {
-                            statusMessage.textContent = '✨ Perfect flight! All systems nominal.';
+                            // Set range sentence based on 10,000 unit increments
+                            const sentences = [
+                                "The rocket barely cleared the tower. Back to the drawing board!",
+                                "You've breached the lower atmosphere! A solid start for any engineer.",
+                                "Scaling the stratosphere! The views from here are getting impressive.",
+                                "Mesosphere reached! You're pushing the boundaries of conventional flight.",
+                                "Edge of space! The blackness of the void is visible through the viewport.",
+                                "Low Earth Orbit achieved! Your material choices have proven space-worthy.",
+                                "Climbing towards the stars! You're officially a master rocket scientist.",
+                                "Higher than most satellites! The curvature of the Earth is breathtaking.",
+                                "Lunar trajectory set! Next stop: the Moon and beyond!"
+                            ];
+                            const sentenceIndex = Math.min(Math.floor(range / 10000), sentences.length - 1);
+                            statusMessage.textContent = '✨ ' + sentences[sentenceIndex];
                             statusMessage.classList.add('success', 'visible');
                         }
 

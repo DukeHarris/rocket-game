@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rocket Hull Builder — Materials Science Workshop</title>
+    <meta name="description"
+        content="Build a rocket hull by selecting materials and launch it into space! A materials science workshop game.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <style>
+        /* ── Reset & Base ──────────────────────────────────── */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0b0e17;
+            --surface: #121729;
+            --card: #181e33;
+            --border: #262e4a;
+            --text: #e0e6f0;
+            --muted: #7b8ab0;
+            --accent: #00e5ff;
+            --accent-glow: rgba(0, 229, 255, .35);
+            --pink: #ff3cac;
+            --green: #39ff14;
+            --red: #ff4060;
+            --orange: #ffa726;
+            --gold: #ffd700;
+            --radius: 12px;
+            --transition: .25s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        html {
+            font-size: 16px;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0, 229, 255, .06), transparent),
+                radial-gradient(ellipse 60% 40% at 80% 100%, rgba(255, 60, 172, .04), transparent);
+        }
+
+        /* ── Starfield Background ──────────────────────────── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(1px 1px at 10% 20%, rgba(255, 255, 255, .5), transparent),
+                radial-gradient(1px 1px at 30% 60%, rgba(255, 255, 255, .3), transparent),
+                radial-gradient(1.5px 1.5px at 50% 10%, rgba(255, 255, 255, .6), transparent),
+                radial-gradient(1px 1px at 70% 80%, rgba(255, 255, 255, .4), transparent),
+                radial-gradient(1px 1px at 90% 30%, rgba(255, 255, 255, .35), transparent),
+                radial-gradient(1.5px 1.5px at 15% 85%, rgba(255, 255, 255, .5), transparent),
+                radial-gradient(1px 1px at 45% 45%, rgba(255, 255, 255, .25), transparent),
+                radial-gradient(1px 1px at 65% 15%, rgba(255, 255, 255, .45), transparent),
+                radial-gradient(1.5px 1.5px at 85% 55%, rgba(255, 255, 255, .55), transparent),
+                radial-gradient(1px 1px at 25% 35%, rgba(255, 255, 255, .3), transparent),
+                radial-gradient(1px 1px at 55% 75%, rgba(255, 255, 255, .2), transparent),
+                radial-gradient(1px 1px at 5% 50%, rgba(255, 255, 255, .4), transparent),
+                radial-gradient(1.5px 1.5px at 75% 40%, rgba(255, 255, 255, .5), transparent),
+                radial-gradient(1px 1px at 95% 70%, rgba(255, 255, 255, .35), transparent),
+                radial-gradient(1px 1px at 40% 90%, rgba(255, 255, 255, .3), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Layout ─────────────────────────────────────────── */
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem 3rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        header h1 {
+            font-size: 2.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, var(--accent), var(--pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        header p {
+            color: var(--muted);
+            margin-top: .5rem;
+            font-size: 1.05rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        @media (max-width: 860px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ── Cards ──────────────────────────────────────────── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--muted);
+            margin-bottom: 1.2rem;
+        }
+
+        /* ── Material Rows ─────────────────────────────────── */
+        .material-list {
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+        }
+
+        .mat-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            padding: .85rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        .mat-row:hover {
+            border-color: rgba(0, 229, 255, .3);
+        }
+
+        .mat-row.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .mat-info h3 {
+            font-size: .95rem;
+            font-weight: 600;
+            margin-bottom: .25rem;
+        }
+
+        .mat-props {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .4rem;
+        }
+
+        .mat-props span {
+            font-size: .72rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, .04);
+            color: var(--muted);
+            white-space: nowrap;
+        }
+
+        .mat-controls {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .mat-controls button {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--text);
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition);
+            line-height: 1;
+        }
+
+        .mat-controls button:hover:not(:disabled) {
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .mat-controls button:disabled {
+            opacity: .3;
+            cursor: not-allowed;
+        }
+
+        .mat-qty {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 700;
+            min-width: 1.6rem;
+            text-align: center;
+            color: var(--accent);
+        }
+
+        /* ── Dashboard ──────────────────────────────────────── */
+        .dashboard {
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .dash-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .7rem .9rem;
+            border-radius: 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            transition: border-color var(--transition), background var(--transition);
+        }
+
+        .stat-label {
+            font-size: .85rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .stat-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.25rem;
+            font-weight: 700;
+            transition: color var(--transition);
+        }
+
+        .stat-check {
+            font-size: 1rem;
+            margin-left: .5rem;
+        }
+
+        .stat-range-hidden {
+            display: none;
+        }
+
+        /* ── Phase-specific styles ─────────────────────────── */
+        .phase-hidden {
+            display: none !important;
+        }
+
+        /* ── Launch Button ─────────────────────────────────── */
+        .launch-btn {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border: none;
+            border-radius: var(--radius);
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all var(--transition);
+            background: linear-gradient(135deg, var(--accent), var(--pink));
+            color: #fff;
+            box-shadow: 0 4px 20px var(--accent-glow), 0 4px 20px rgba(255, 60, 172, .2);
+        }
+
+        .launch-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px var(--accent-glow), 0 6px 30px rgba(255, 60, 172, .3);
+        }
+
+        .launch-btn:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .launch-btn:disabled {
+            background: var(--border);
+            color: var(--muted);
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .reset-btn {
+            width: 100%;
+            margin-top: .75rem;
+            padding: .65rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: .85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .reset-btn:hover {
+            border-color: var(--red);
+            color: var(--red);
+        }
+
+        .back-btn {
+            width: 100%;
+            margin-top: .75rem;
+            padding: .75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: transparent;
+            color: var(--muted);
+            font-family: 'Outfit', sans-serif;
+            font-size: .95rem;
+            font-weight: 600;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .back-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* ── Launch Visualization ──────────────────────────── */
+        .launch-area {
+            margin-top: 2rem;
+            position: relative;
+        }
+
+        .sky {
+            position: relative;
+            height: 600px;
+            background: linear-gradient(180deg, #0d1020 0%, #0e1225 30%, #141a30 60%, #1a2240 100%);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        /* Ground line at bottom */
+        .sky::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--pink), var(--accent));
+            opacity: .5;
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-45deg);
+            font-size: 2.5rem;
+            filter: drop-shadow(0 0 8px var(--accent-glow));
+            transition: none;
+            opacity: 0;
+        }
+
+        .rocket.ready {
+            opacity: 1;
+        }
+
+        .rocket.flying {
+            opacity: 1;
+            transition: bottom 2.5s cubic-bezier(.2, .8, .3, 1);
+        }
+
+        .score-display {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.8rem;
+            font-weight: 700;
+            opacity: 0;
+            transform: scale(.8);
+            transition: opacity .6s ease, transform .6s ease;
+        }
+
+        .score-display.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .score-display .score-number {
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .score-display .score-unit {
+            font-size: .9rem;
+            color: var(--muted);
+            font-weight: 400;
+        }
+
+        /* ── Status Message (heat/vibration check) ─────────── */
+        .status-message {
+            text-align: center;
+            margin-top: 1rem;
+            font-size: 1.2rem;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity .5s ease, transform .5s ease;
+        }
+
+        .status-message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status-message.fail {
+            color: var(--red);
+            text-shadow: 0 0 20px rgba(255, 64, 96, .4);
+        }
+
+        .status-message.warn {
+            color: var(--orange);
+            text-shadow: 0 0 20px rgba(255, 167, 38, .4);
+        }
+
+        .status-message.success {
+            color: var(--green);
+            text-shadow: 0 0 20px rgba(57, 255, 20, .3);
+        }
+
+        /* ── Exhaust Particles ─────────────────────────────── */
+        .exhaust {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: exhaust-fade .6s ease-out forwards;
+        }
+
+        @keyframes exhaust-fade {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(.2) translateY(30px);
+            }
+        }
+
+        /* ── Explosion Particles ───────────────────────────── */
+        .explosion-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .explosion-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 3px solid var(--orange);
+            pointer-events: none;
+            z-index: 9;
+            animation: explosion-ring-expand .8s ease-out forwards;
+        }
+
+        @keyframes explosion-ring-expand {
+            0% {
+                width: 0;
+                height: 0;
+                opacity: 1;
+            }
+
+            100% {
+                width: 120px;
+                height: 120px;
+                opacity: 0;
+            }
+        }
+
+        .explosion-flash {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 8;
+            background: radial-gradient(circle, rgba(255, 200, 50, .9), rgba(255, 80, 30, .5), transparent 70%);
+            animation: explosion-flash .5s ease-out forwards;
+        }
+
+        @keyframes explosion-flash {
+            0% {
+                width: 20px;
+                height: 20px;
+                opacity: 1;
+            }
+
+            100% {
+                width: 160px;
+                height: 160px;
+                opacity: 0;
+            }
+        }
+
+        /* ── Celestial Objects ─────────────────────────────── */
+        .celestial {
+            position: absolute;
+            pointer-events: none;
+            opacity: .6;
+            z-index: 1;
+            animation: celestial-float 4s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, .15));
+            transition: opacity .3s ease;
+        }
+
+        @keyframes celestial-float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        /* ── Launch Phase Centered Layout ──────────────────── */
+        .launch-phase-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .launch-phase-wrapper .launch-btn {
+            font-size: 1.6rem;
+            padding: 1.4rem;
+        }
+
+        .launch-phase-wrapper .card-title {
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+        }
+
+        /* ── Responsive Tweaks ─────────────────────────────── */
+        @media (max-width: 860px) {
+            .dashboard {
+                position: static;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <h1>🚀 Rocket Hull Builder</h1>
+            <p id="header-subtitle">Select 5 material units to build your rocket hull and launch it into space!</p>
+        </header>
+
+        <!-- ═══ PREPARATION PHASE ═══ -->
+        <div id="preparation-phase">
+            <div class="main-grid">
+                <!-- Material Selector -->
+                <section class="card" id="selector-card">
+                    <h2 class="card-title">Materials Catalog</h2>
+                    <div class="material-list" id="material-list"></div>
+                </section>
+
+                <!-- Dashboard -->
+                <aside class="card dashboard" id="dashboard">
+                    <h2 class="card-title">Mission Dashboard</h2>
+                    <div class="dash-stats">
+                        <div class="stat" id="stat-units">
+                            <span class="stat-label">Material Units</span>
+                            <span><span class="stat-value" id="val-units">0 / 5</span><span class="stat-check"
+                                    id="check-units"></span></span>
+                        </div>
+                        <div class="stat" id="stat-density">
+                            <span class="stat-label">Density</span>
+                            <span class="stat-value" id="val-density">0</span>
+                        </div>
+                        <div class="stat" id="stat-strength">
+                            <span class="stat-label">Strength</span>
+                            <span class="stat-value" id="val-strength">0</span>
+                        </div>
+                        <div class="stat" id="stat-temp">
+                            <span class="stat-label">Temp Score</span>
+                            <span class="stat-value" id="val-temp">0</span>
+                        </div>
+                        <div class="stat" id="stat-tough">
+                            <span class="stat-label">Toughness</span>
+                            <span class="stat-value" id="val-tough">0</span>
+                        </div>
+                        <div class="stat" id="stat-formability">
+                            <span class="stat-label">Formability</span>
+                            <span class="stat-value" id="val-formability">0</span>
+                        </div>
+                        <div class="stat" id="stat-cost">
+                            <span class="stat-label">Total Cost</span>
+                            <span><span class="stat-value" id="val-cost">$0</span><span class="stat-check"
+                                    id="check-cost"></span></span>
+                        </div>
+                    </div>
+                    <button class="launch-btn" id="enter-launch-btn" disabled>🚀 Enter Launch Phase</button>
+                    <button class="reset-btn" id="reset-btn">Reset Selection</button>
+                </aside>
+            </div>
+        </div>
+
+        <!-- ═══ LAUNCH PHASE ═══ -->
+        <div id="launch-phase" class="phase-hidden">
+            <div class="launch-phase-wrapper">
+                <section class="launch-area card" id="launch-area">
+                    <h2 class="card-title">Launch Pad</h2>
+                    <div class="sky" id="sky">
+                        <span class="rocket" id="rocket">🚀</span>
+                    </div>
+                    <div class="status-message" id="status-message"></div>
+                    <div class="score-display" id="score-display">
+                        <span class="score-number" id="score-number">0</span>
+                        <br>
+                        <span class="score-unit">Flight Range</span>
+                    </div>
+                </section>
+                <button class="launch-btn" id="launch-btn">🚀 Launch!</button>
+                <button class="back-btn" id="back-btn">← Back to Preparation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ── Materials Data ──────────────────────────────────────
+        const MATERIALS = [
+            { name: "Stainless Steel (304)", density: 2, strength: 3, temp: 3, toughness: 5, formability: 4, cost: 100 },
+            { name: "Aluminum Alloy (7075)", density: 4, strength: 3, temp: 1, toughness: 3, formability: 5, cost: 150 },
+            { name: "Magnesium Alloy (AZ31)", density: 4, strength: 1, temp: 1, toughness: 3, formability: 4, cost: 200 },
+            { name: "Titanium (Ti-6Al-4V)", density: 3, strength: 5, temp: 3, toughness: 4, formability: 3, cost: 400 },
+            { name: "Inconel 718", density: 1, strength: 4, temp: 4, toughness: 5, formability: 2, cost: 500 },
+            { name: "Carbon Fiber (CFRP)", density: 5, strength: 5, temp: 1, toughness: 2, formability: 2, cost: 600 },
+            { name: "Silicon Carbide", density: 3, strength: 2, temp: 4, toughness: 1, formability: 1, cost: 700 },
+            { name: "Tungsten", density: 1, strength: 2, temp: 5, toughness: 2, formability: 1, cost: 700 },
+            { name: "Carbon-Carbon", density: 5, strength: 3, temp: 5, toughness: 1, formability: 1, cost: 900 },
+            { name: "Beryllium", density: 5, strength: 4, temp: 2, toughness: 1, formability: 1, cost: 1000 }
+        ];
+
+        const MAX_UNITS = 5;
+        const MAX_COST = 1800;
+        const MIN_TEMP = 15;
+        const MIN_TOUGHNESS = 15;
+        const MAX_RANGE = 60000; // used to scale the animation
+
+        // State
+        const quantities = new Array(MATERIALS.length).fill(0);
+        let currentPhase = 'preparation'; // 'preparation' or 'launch'
+
+        // ── DOM References ──────────────────────────────────────
+        const materialListEl = document.getElementById('material-list');
+        const valUnits = document.getElementById('val-units');
+        const valCost = document.getElementById('val-cost');
+        const valDensity = document.getElementById('val-density');
+        const valStrength = document.getElementById('val-strength');
+        const valTemp = document.getElementById('val-temp');
+        const valTough = document.getElementById('val-tough');
+        const valFormability = document.getElementById('val-formability');
+        const checkUnits = document.getElementById('check-units');
+        const checkCost = document.getElementById('check-cost');
+        const enterLaunchBtn = document.getElementById('enter-launch-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const launchBtn = document.getElementById('launch-btn');
+        const backBtn = document.getElementById('back-btn');
+        const rocketEl = document.getElementById('rocket');
+        const skyEl = document.getElementById('sky');
+        const scoreDisplay = document.getElementById('score-display');
+        const scoreNumber = document.getElementById('score-number');
+        const statusMessage = document.getElementById('status-message');
+        const prepPhaseEl = document.getElementById('preparation-phase');
+        const launchPhaseEl = document.getElementById('launch-phase');
+        const headerSubtitle = document.getElementById('header-subtitle');
+
+        // ── Build Material Rows ─────────────────────────────────
+        function buildMaterialList() {
+            MATERIALS.forEach((mat, i) => {
+                const row = document.createElement('div');
+                row.className = 'mat-row';
+                row.id = `mat-row-${i}`;
+                row.innerHTML = `
+        <div class="mat-info">
+          <h3>${mat.name}</h3>
+          <div class="mat-props">
+            <span>DEN ${mat.density}</span>
+            <span>STR ${mat.strength}</span>
+            <span>TMP ${mat.temp}</span>
+            <span>TGH ${mat.toughness}</span>
+            <span>FRM ${mat.formability}</span>
+            <span>$${mat.cost}</span>
+          </div>
+        </div>
+        <div class="mat-controls">
+          <button id="minus-${i}" aria-label="Remove ${mat.name}">−</button>
+          <span class="mat-qty" id="qty-${i}">0</span>
+          <button id="plus-${i}" aria-label="Add ${mat.name}">+</button>
+        </div>
+      `;
+                materialListEl.appendChild(row);
+
+                document.getElementById(`plus-${i}`).addEventListener('click', () => changeQty(i, 1));
+                document.getElementById(`minus-${i}`).addEventListener('click', () => changeQty(i, -1));
+            });
+        }
+
+        // ── Quantity Change ─────────────────────────────────────
+        function changeQty(index, delta) {
+            const newVal = quantities[index] + delta;
+            if (newVal < 0) return;
+
+            const totalUnits = quantities.reduce((s, v) => s + v, 0);
+            if (delta > 0 && totalUnits >= MAX_UNITS) return;
+
+            quantities[index] = newVal;
+            updateUI();
+        }
+
+        // ── Compute Totals ──────────────────────────────────────
+        function computeTotals() {
+            let units = 0, cost = 0, temp = 0, toughness = 0, density = 0, strength = 0, formability = 0;
+            for (let i = 0; i < MATERIALS.length; i++) {
+                const q = quantities[i];
+                if (q === 0) continue;
+                const m = MATERIALS[i];
+                units += q;
+                cost += q * m.cost;
+                temp += q * m.temp;
+                toughness += q * m.toughness;
+                density += q * m.density;
+                strength += q * m.strength;
+                formability += q * m.formability;
+            }
+            // Base range
+            let range = density * (strength + formability) * 100;
+
+            // Heat Check: temp must be >= 15, otherwise nozzle melts
+            let heatFail = temp < MIN_TEMP;
+            // Acoustic Vibration Check: toughness must be >= 15, otherwise hull cracks
+            let vibrationFail = toughness < MIN_TOUGHNESS;
+
+            // Apply checks
+            if (heatFail) {
+                range = 0;
+            } else if (vibrationFail) {
+                range = Math.floor(range / 2);
+            }
+
+            return { units, cost, temp, toughness, density, strength, formability, range, heatFail, vibrationFail };
+        }
+
+        // ── Update UI ───────────────────────────────────────────
+        function updateUI() {
+            const t = computeTotals();
+
+            // Quantities & row highlights
+            MATERIALS.forEach((_, i) => {
+                document.getElementById(`qty-${i}`).textContent = quantities[i];
+                const row = document.getElementById(`mat-row-${i}`);
+                row.classList.toggle('active', quantities[i] > 0);
+                document.getElementById(`minus-${i}`).disabled = quantities[i] <= 0;
+                document.getElementById(`plus-${i}`).disabled = t.units >= MAX_UNITS;
+            });
+
+            // Dashboard values
+            valUnits.textContent = `${t.units} / ${MAX_UNITS}`;
+            valCost.textContent = `$${t.cost.toLocaleString()}`;
+            valDensity.textContent = t.density;
+            valStrength.textContent = t.strength;
+            valTemp.textContent = t.temp;
+            valTough.textContent = t.toughness;
+            valFormability.textContent = t.formability;
+
+            // Check indicators
+            const unitsOk = t.units === MAX_UNITS;
+            const costOk = t.cost <= MAX_COST;
+
+            checkUnits.textContent = t.units > 0 ? (unitsOk ? ' ✅' : ' ❌') : '';
+            checkCost.textContent = t.cost > 0 ? (costOk ? ' ✅' : ' ❌') : '';
+
+            // Color cost red if over budget
+            valCost.style.color = (!costOk && t.cost > 0) ? 'var(--red)' : '';
+
+            // Enter launch phase button: only requires 5 units + cost under budget
+            const canEnterLaunch = unitsOk && costOk;
+            enterLaunchBtn.disabled = !canEnterLaunch;
+        }
+
+        // ── Phase Switching ─────────────────────────────────────
+        function enterLaunchPhase() {
+            currentPhase = 'launch';
+            prepPhaseEl.classList.add('phase-hidden');
+            launchPhaseEl.classList.remove('phase-hidden');
+            headerSubtitle.textContent = 'Prepare for launch!';
+
+            // Reset launch visualization
+            resetLaunchVisuals();
+
+            // Add celestial objects to the sky
+            createCelestialObjects();
+
+            // Enable launch button
+            launchBtn.disabled = false;
+        }
+
+        function backToPreparation() {
+            currentPhase = 'preparation';
+            launchPhaseEl.classList.add('phase-hidden');
+            prepPhaseEl.classList.remove('phase-hidden');
+            headerSubtitle.textContent = 'Select 5 material units to build your rocket hull and launch it into space!';
+
+            resetLaunchVisuals();
+        }
+
+        // ── Launch Animation ────────────────────────────────────
+        let isLaunching = false;
+
+        function showCountdown(callback) {
+            const steps = ['3', '2', '1', 'LIFTOFF!'];
+            let i = 0;
+
+            function showNext() {
+                if (i >= steps.length) {
+                    callback();
+                    return;
+                }
+                const el = document.createElement('div');
+                el.className = 'countdown-number' + (steps[i] === 'LIFTOFF!' ? ' liftoff' : '');
+                el.textContent = steps[i];
+                skyEl.appendChild(el);
+                setTimeout(() => el.remove(), 700);
+                i++;
+                setTimeout(showNext, 750);
+            }
+            showNext();
+        }
+
+        function launch() {
+            if (isLaunching) return;
+            isLaunching = true;
+            launchBtn.disabled = true;
+
+            const t = computeTotals();
+            const range = t.range;
+
+            // Calculate how far the rocket should fly (percentage of sky height)
+            const pct = Math.min(range / MAX_RANGE, 1);
+            const skyHeight = skyEl.clientHeight;
+            const targetBottom = 10 + (skyHeight - 60) * pct; // 10px start, some space for rocket
+
+            // Reset rocket position
+            rocketEl.classList.remove('flying');
+            rocketEl.style.bottom = '10px';
+            rocketEl.classList.add('ready');
+            scoreDisplay.classList.remove('visible');
+            statusMessage.classList.remove('visible');
+            statusMessage.className = 'status-message';
+
+            // Force reflow
+            void rocketEl.offsetWidth;
+
+            // Countdown then fly
+            showCountdown(() => {
+                requestAnimationFrame(() => {
+                    rocketEl.classList.add('flying');
+                    rocketEl.style.bottom = targetBottom + 'px';
+
+                    // Spawn exhaust particles during flight
+                    const exhaustInterval = setInterval(() => spawnExhaust(), 80);
+
+                    // Show score and status after animation
+                    setTimeout(() => {
+                        clearInterval(exhaustInterval);
+
+                        // Show status message
+                        if (t.heatFail) {
+                            spawnExplosion();
+                            statusMessage.textContent = '🔥 Nozzle melted! The engine couldn\'t handle the heat.';
+                            statusMessage.classList.add('fail', 'visible');
+                        } else if (t.vibrationFail) {
+                            spawnExplosion();
+                            statusMessage.textContent = '💥 Hull cracked! Acoustic vibrations were too intense. Range halved!';
+                            statusMessage.classList.add('warn', 'visible');
+                        } else {
+                            statusMessage.textContent = '✨ Perfect flight! All systems nominal.';
+                            statusMessage.classList.add('success', 'visible');
+                        }
+
+                        scoreNumber.textContent = range.toLocaleString();
+                        scoreDisplay.classList.add('visible');
+                        isLaunching = false;
+                    }, 2700);
+                });
+            });
+        }
+
+        function spawnExhaust() {
+            const rect = rocketEl.getBoundingClientRect();
+            const skyRect = skyEl.getBoundingClientRect();
+
+            // Particles spawn below the rocket
+            const x = rect.left - skyRect.left + rect.width / 2 + (Math.random() - .5) * 20;
+            const y = rect.bottom - skyRect.top + 5;
+
+            const particle = document.createElement('div');
+            particle.className = 'exhaust';
+            const colors = ['var(--accent)', 'var(--pink)', 'var(--orange)', 'var(--gold)'];
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.boxShadow = `0 0 6px ${particle.style.background}`;
+            skyEl.appendChild(particle);
+
+            setTimeout(() => particle.remove(), 600);
+        }
+
+        // ── Explosion Animation ─────────────────────────────────
+        function spawnExplosion() {
+            const rect = rocketEl.getBoundingClientRect();
+            const skyRect = skyEl.getBoundingClientRect();
+            const cx = rect.left - skyRect.left + rect.width / 2;
+            const cy = rect.top - skyRect.top + rect.height / 2;
+
+            // Hide the rocket
+            rocketEl.style.opacity = '0';
+
+            // Flash
+            const flash = document.createElement('div');
+            flash.className = 'explosion-flash';
+            flash.style.left = (cx - 10) + 'px';
+            flash.style.top = (cy - 10) + 'px';
+            skyEl.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+
+            // Expanding ring
+            const ring = document.createElement('div');
+            ring.className = 'explosion-ring';
+            ring.style.left = cx + 'px';
+            ring.style.top = cy + 'px';
+            ring.style.transform = 'translate(-50%, -50%)';
+            skyEl.appendChild(ring);
+            setTimeout(() => ring.remove(), 800);
+
+            // Particles
+            const colors = ['#ff4060', '#ffa726', '#ffd700', '#ff6b35', '#ff3cac', '#fff'];
+            const particleCount = 22;
+            for (let i = 0; i < particleCount; i++) {
+                const p = document.createElement('div');
+                p.className = 'explosion-particle';
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                p.style.background = color;
+                p.style.boxShadow = `0 0 8px ${color}, 0 0 16px ${color}`;
+                p.style.left = cx + 'px';
+                p.style.top = cy + 'px';
+
+                const size = 4 + Math.random() * 8;
+                p.style.width = size + 'px';
+                p.style.height = size + 'px';
+
+                const angle = (Math.PI * 2 / particleCount) * i + (Math.random() - .5) * .5;
+                const speed = 60 + Math.random() * 120;
+                const dx = Math.cos(angle) * speed;
+                const dy = Math.sin(angle) * speed;
+
+                skyEl.appendChild(p);
+
+                p.animate([
+                    { transform: 'translate(0, 0) scale(1)', opacity: 1 },
+                    { transform: `translate(${dx}px, ${dy}px) scale(0.1)`, opacity: 0 }
+                ], {
+                    duration: 600 + Math.random() * 400,
+                    easing: 'cubic-bezier(.2,.8,.3,1)',
+                    fill: 'forwards'
+                });
+
+                setTimeout(() => p.remove(), 1100);
+            }
+        }
+
+        // ── Celestial Objects ────────────────────────────────────
+        function createCelestialObjects() {
+            // Remove any existing celestial objects
+            skyEl.querySelectorAll('.celestial').forEach(c => c.remove());
+
+            const objects = [
+                { emoji: '🌕', size: '2rem', left: '12%', bottom: '18%', delay: '0s' },
+                { emoji: '🪐', size: '2.5rem', left: '78%', bottom: '40%', delay: '1s' },
+                { emoji: '☄️', size: '1.5rem', left: '88%', bottom: '25%', delay: '2.5s' },
+                { emoji: '🛸', size: '1.4rem', left: '25%', bottom: '55%', delay: '1.5s' },
+                { emoji: '⭐', size: '1rem', left: '60%', bottom: '70%', delay: '0.5s' },
+                { emoji: '🌑', size: '1.8rem', left: '45%', bottom: '82%', delay: '3s' },
+                { emoji: '⭐', size: '.8rem', left: '8%', bottom: '65%', delay: '2s' },
+                { emoji: '🌍', size: '2.2rem', left: '68%', bottom: '58%', delay: '0.8s' },
+                { emoji: '⭐', size: '.7rem', left: '35%', bottom: '35%', delay: '1.8s' },
+                { emoji: '☄️', size: '1.2rem', left: '50%', bottom: '90%', delay: '3.5s' },
+            ];
+
+            objects.forEach(obj => {
+                const el = document.createElement('span');
+                el.className = 'celestial';
+                el.textContent = obj.emoji;
+                el.style.fontSize = obj.size;
+                el.style.left = obj.left;
+                el.style.bottom = obj.bottom;
+                el.style.animationDelay = obj.delay;
+                skyEl.appendChild(el);
+            });
+        }
+
+        function resetLaunchVisuals() {
+            isLaunching = false;
+            rocketEl.classList.remove('flying', 'ready');
+            rocketEl.style.bottom = '10px';
+            rocketEl.style.opacity = '';
+            scoreDisplay.classList.remove('visible');
+            statusMessage.classList.remove('visible');
+            statusMessage.className = 'status-message';
+            // Clean up any leftover particles and explosions
+            skyEl.querySelectorAll('.exhaust, .explosion-particle, .explosion-ring, .explosion-flash').forEach(p => p.remove());
+        }
+
+        function resetAll() {
+            quantities.fill(0);
+            resetLaunchVisuals();
+            updateUI();
+        }
+
+        // ── Event Listeners ────────────────────────────────────
+        enterLaunchBtn.addEventListener('click', enterLaunchPhase);
+        launchBtn.addEventListener('click', launch);
+        backBtn.addEventListener('click', backToPreparation);
+        resetBtn.addEventListener('click', resetAll);
+
+        // ── Init ────────────────────────────────────────────────
+        buildMaterialList();
+        updateUI();
+    </script>
+</body>
+
+</html>

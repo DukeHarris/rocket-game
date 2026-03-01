@@ -775,29 +775,14 @@
     </div>
 
     <script>
-        // ── Materials Data ──────────────────────────────────────
-        const MATERIALS = [
-            { name: "Stainless Steel (304)", density: 1, strength: 3, temp: 3, toughness: 5, formability: 3, cost: 100 },
-            { name: "Aluminum Alloy (7075)", density: 4, strength: 3, temp: 2, toughness: 3, formability: 5, cost: 150 },
-            { name: "Magnesium Alloy (AZ31)", density: 4, strength: 1, temp: 2, toughness: 2, formability: 4, cost: 200 },
-            { name: "Titanium (Ti-6Al-4V)", density: 3, strength: 5, temp: 3, toughness: 4, formability: 3, cost: 400 },
-            { name: "Inconel 718", density: 1, strength: 4, temp: 4, toughness: 5, formability: 2, cost: 500 },
-            { name: "Carbon Fiber (CFRP)", density: 5, strength: 5, temp: 2, toughness: 3, formability: 2, cost: 500 },
-            { name: "Silicon Carbide", density: 3, strength: 2, temp: 4, toughness: 2, formability: 1, cost: 600 },
-            { name: "Tungsten", density: 1, strength: 2, temp: 5, toughness: 2, formability: 1, cost: 700 },
-            { name: "Carbon-Carbon", density: 5, strength: 3, temp: 5, toughness: 2, formability: 1, cost: 800 },
-            { name: "Beryllium", density: 5, strength: 4, temp: 2, toughness: 1, formability: 1, cost: 1000 }
-        ];
-
-        const MAX_UNITS = 5;
-        const MAX_COST = 2000;
-        const MIN_TEMP = 13;
-        const MIN_TOUGHNESS = 13;
-        const MAX_RANGE = 80000; // used to scale the animation
+        // ── Configuration & State ───────────────────────────────
+        let MATERIALS = [];
+        let MAX_UNITS, MAX_COST, MIN_TEMP, MIN_TOUGHNESS, MAX_RANGE;
 
         // State
-        const quantities = new Array(MATERIALS.length).fill(0);
+        let quantities = [];
         let currentPhase = 'preparation'; // 'preparation' or 'launch'
+
 
         // ── DOM References ──────────────────────────────────────
         const materialListEl = document.getElementById('material-list');
@@ -1197,8 +1182,32 @@
         resetBtn.addEventListener('click', resetAll);
 
         // ── Init ────────────────────────────────────────────────
-        buildMaterialList();
-        updateUI();
+        async function init() {
+            try {
+                const response = await fetch('config.json');
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+
+                MATERIALS = data.MATERIALS;
+                MAX_UNITS = data.CONFIG.MAX_UNITS;
+                MAX_COST = data.CONFIG.MAX_COST;
+                MIN_TEMP = data.CONFIG.MIN_TEMP;
+                MIN_TOUGHNESS = data.CONFIG.MIN_TOUGHNESS;
+                MAX_RANGE = data.CONFIG.MAX_RANGE;
+
+                quantities = new Array(MATERIALS.length).fill(0);
+
+                buildMaterialList();
+                updateUI();
+            } catch (err) {
+                console.error('Error loading configuration:', err);
+                // Fallback or error message for user
+                materialListEl.innerHTML = '<p style="color: var(--red); padding: 1rem;">Failed to load material configurations. Please check if config.json exists.</p>';
+            }
+        }
+
+        init();
+
     </script>
 </body>
 

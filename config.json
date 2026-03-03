@@ -1,7 +1,7 @@
 {
     "MATERIALS": [
         {
-            "name": "Stainless Steel (304)",
+            "name": "Stainless Steel",
             "density": 1,
             "strength": 3,
             "temp": 3,
@@ -10,7 +10,7 @@
             "cost": 100
         },
         {
-            "name": "Aluminum Alloy (7075)",
+            "name": "Aluminum Alloy",
             "density": 4,
             "strength": 3,
             "temp": 2,
@@ -19,7 +19,7 @@
             "cost": 150
         },
         {
-            "name": "Magnesium Alloy (AZ31)",
+            "name": "Magnesium Alloy",
             "density": 4,
             "strength": 1,
             "temp": 2,
@@ -28,7 +28,7 @@
             "cost": 200
         },
         {
-            "name": "Titanium (Ti-6Al-4V)",
+            "name": "Titanium",
             "density": 3,
             "strength": 5,
             "temp": 3,
@@ -37,7 +37,7 @@
             "cost": 400
         },
         {
-            "name": "Inconel 718",
+            "name": "Inconel",
             "density": 1,
             "strength": 4,
             "temp": 4,
@@ -46,7 +46,7 @@
             "cost": 500
         },
         {
-            "name": "Carbon Fiber (CFRP)",
+            "name": "Carbon Fiber",
             "density": 5,
             "strength": 5,
             "temp": 2,
@@ -98,7 +98,7 @@
             "MAX_COST": 2500,
             "MIN_TEMP": 8,
             "MIN_TOUGHNESS": 13,
-            "MAX_RANGE": 85000
+            "MAX_RANGE": 90000
         },
         {
             "name": "Scenario 2: Increased Min Temp",

@@ -1202,12 +1202,24 @@
         // ── Init ────────────────────────────────────────────────
         async function init() {
             try {
-                const response = await fetch('config.json');
+                const response = await fetch('config.json?v=' + new Date().getTime(), { cache: 'no-store' });
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
 
-                MATERIALS = data.MATERIALS;
-                SCENARIOS = data.SCENARIOS;
+                // Fallback in case a cached version of config.json (without SCENARIOS) is loaded
+                if (!data.SCENARIOS && data.CONFIG) {
+                    data.SCENARIOS = [{
+                        name: "Default Scenario",
+                        MAX_UNITS: data.CONFIG.MAX_UNITS,
+                        MAX_COST: data.CONFIG.MAX_COST,
+                        MIN_TEMP: data.CONFIG.MIN_TEMP,
+                        MIN_TOUGHNESS: data.CONFIG.MIN_TOUGHNESS,
+                        MAX_RANGE: data.CONFIG.MAX_RANGE
+                    }];
+                }
+
+                MATERIALS = data.MATERIALS || [];
+                SCENARIOS = data.SCENARIOS || [];
 
                 const scenarioSelect = document.getElementById('scenario-select');
                 if (scenarioSelect) {

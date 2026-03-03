@@ -91,11 +91,30 @@
             "cost": 1000
         }
     ],
-    "CONFIG": {
-        "MAX_UNITS": 5,
-        "MAX_COST": 2000,
-        "MIN_TEMP": 13,
-        "MIN_TOUGHNESS": 13,
-        "MAX_RANGE": 85000
-    }
+    "SCENARIOS": [
+        {
+            "name": "Scenario 1: Base",
+            "MAX_UNITS": 5,
+            "MAX_COST": 2500,
+            "MIN_TEMP": 8,
+            "MIN_TOUGHNESS": 13,
+            "MAX_RANGE": 85000
+        },
+        {
+            "name": "Scenario 2: Increased Min Temp",
+            "MAX_UNITS": 5,
+            "MAX_COST": 2500,
+            "MIN_TEMP": 13,
+            "MIN_TOUGHNESS": 13,
+            "MAX_RANGE": 85000
+        },
+        {
+            "name": "Scenario 3: Budget Cut",
+            "MAX_UNITS": 5,
+            "MAX_COST": 1800,
+            "MIN_TEMP": 13,
+            "MIN_TOUGHNESS": 13,
+            "MAX_RANGE": 85000
+        }
+    ]
 }

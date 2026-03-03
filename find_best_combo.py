@@ -10,13 +10,9 @@ with open(config_path, "r") as f:
     config_data = json.load(f)
 
 MATERIALS = config_data["MATERIALS"]
-MAX_UNITS = config_data["CONFIG"]["MAX_UNITS"]
-MAX_COST = config_data["CONFIG"]["MAX_COST"]
-MIN_TEMP = config_data["CONFIG"]["MIN_TEMP"]
-MIN_TOUGHNESS = config_data["CONFIG"]["MIN_TOUGHNESS"]
+SCENARIOS = config_data.get("SCENARIOS", [])
 
-
-def calculate_stats(combo):
+def calculate_stats(combo, min_temp, min_toughness):
     units = len(combo)
     cost = sum(m["cost"] for m in combo)
     temp = sum(m["temp"] for m in combo)
@@ -28,8 +24,8 @@ def calculate_stats(combo):
     # Base range
     range_val = density * (strength + formability) * 100
     
-    heat_fail = temp < MIN_TEMP
-    vibration_fail = toughness < MIN_TOUGHNESS
+    heat_fail = temp < min_temp
+    vibration_fail = toughness < min_toughness
     
     final_range = range_val
     if heat_fail:
@@ -49,13 +45,23 @@ def calculate_stats(combo):
         "formability": formability
     }
 
-def find_best():
-    all_combos = list(itertools.combinations_with_replacement(MATERIALS, MAX_UNITS))
+def find_best_for_scenario(scenario):
+    max_units = scenario.get("MAX_UNITS", 5)
+    max_cost = scenario.get("MAX_COST", 2500)
+    min_temp = scenario.get("MIN_TEMP", 8)
+    min_toughness = scenario.get("MIN_TOUGHNESS", 13)
+    
+    print(f"\n=======================================================")
+    print(f"SCENARIO: {scenario.get('name', 'Unnamed')}")
+    print(f"Budget: ${max_cost} | Min Temp: {min_temp} | Min Toughness: {min_toughness}")
+    print(f"=======================================================")
+    
+    all_combos = list(itertools.combinations_with_replacement(MATERIALS, max_units))
     
     valid_combos = []
     for combo in all_combos:
-        stats = calculate_stats(combo)
-        if stats["cost"] <= MAX_COST:
+        stats = calculate_stats(combo, min_temp, min_toughness)
+        if stats["cost"] <= max_cost:
             valid_combos.append({
                 "combo": combo,
                 "stats": stats
@@ -64,7 +70,11 @@ def find_best():
     # Sort by range (descending), then cost (ascending)
     valid_combos.sort(key=lambda x: (-x["stats"]["range"], x["stats"]["cost"]))
     
-    print(f"Total valid combinations (cost <= {MAX_COST}): {len(valid_combos)}")
+    print(f"Total valid combinations (cost <= {max_cost}): {len(valid_combos)}")
+    if not valid_combos:
+        print("No valid combinations found for this scenario.")
+        return
+        
     print("\n--- TOP 10 COMBINATIONS ---")
     for i, item in enumerate(valid_combos[:10]):
         combo = item["combo"]
@@ -84,4 +94,8 @@ def find_best():
         print("-" * 20)
 
 if __name__ == "__main__":
-    find_best()
+    if SCENARIOS:
+        for s in SCENARIOS:
+            find_best_for_scenario(s)
+    else:
+        print("No scenarios found in config.json")

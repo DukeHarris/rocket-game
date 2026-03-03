@@ -715,6 +715,14 @@
                 <!-- Dashboard -->
                 <aside class="card dashboard" id="dashboard">
                     <h2 class="card-title">Mission Dashboard</h2>
+                    <div style="margin-bottom: 1.2rem;">
+                        <label for="scenario-select"
+                            style="font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Scenario
+                            Configuration</label>
+                        <select id="scenario-select"
+                            style="width: 100%; padding: .6rem; margin-top: .5rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Outfit', sans-serif;">
+                        </select>
+                    </div>
                     <div class="dash-stats">
                         <div class="stat" id="stat-units">
                             <span class="stat-label">Material Units</span>
@@ -777,6 +785,7 @@
     <script>
         // ── Configuration & State ───────────────────────────────
         let MATERIALS = [];
+        let SCENARIOS = [];
         let MAX_UNITS, MAX_COST, MIN_TEMP, MIN_TOUGHNESS, MAX_RANGE;
 
         // State
@@ -1181,6 +1190,15 @@
         backBtn.addEventListener('click', backToPreparation);
         resetBtn.addEventListener('click', resetAll);
 
+        function setScenario(index) {
+            const s = SCENARIOS[index];
+            MAX_UNITS = s.MAX_UNITS;
+            MAX_COST = s.MAX_COST;
+            MIN_TEMP = s.MIN_TEMP;
+            MIN_TOUGHNESS = s.MIN_TOUGHNESS;
+            MAX_RANGE = s.MAX_RANGE;
+        }
+
         // ── Init ────────────────────────────────────────────────
         async function init() {
             try {
@@ -1189,11 +1207,24 @@
                 const data = await response.json();
 
                 MATERIALS = data.MATERIALS;
-                MAX_UNITS = data.CONFIG.MAX_UNITS;
-                MAX_COST = data.CONFIG.MAX_COST;
-                MIN_TEMP = data.CONFIG.MIN_TEMP;
-                MIN_TOUGHNESS = data.CONFIG.MIN_TOUGHNESS;
-                MAX_RANGE = data.CONFIG.MAX_RANGE;
+                SCENARIOS = data.SCENARIOS;
+
+                const scenarioSelect = document.getElementById('scenario-select');
+                if (scenarioSelect) {
+                    SCENARIOS.forEach((scenario, index) => {
+                        const opt = document.createElement('option');
+                        opt.value = index;
+                        opt.textContent = scenario.name;
+                        scenarioSelect.appendChild(opt);
+                    });
+
+                    scenarioSelect.addEventListener('change', (e) => {
+                        setScenario(parseInt(e.target.value));
+                        updateUI();
+                    });
+                }
+
+                setScenario(0);
 
                 quantities = new Array(MATERIALS.length).fill(0);
 

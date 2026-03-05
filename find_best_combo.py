@@ -12,7 +12,7 @@ with open(config_path, "r") as f:
 MATERIALS = config_data["MATERIALS"]
 SCENARIOS = config_data.get("SCENARIOS", [])
 
-def calculate_stats(combo, min_temp, min_toughness):
+def calculate_stats(combo, min_temp):
     units = len(combo)
     cost = sum(m["cost"] for m in combo)
     temp = sum(m["temp"] for m in combo)
@@ -25,13 +25,11 @@ def calculate_stats(combo, min_temp, min_toughness):
     range_val = density * (strength + formability) * 100
     
     heat_fail = temp < min_temp
-    vibration_fail = toughness < min_toughness
+    success_chance = max(0.0, min(100.0, (toughness - 4) * 10))
     
     final_range = range_val
     if heat_fail:
         final_range = 0
-    elif vibration_fail:
-        final_range = final_range // 2
         
     return {
         "cost": cost,
@@ -39,7 +37,7 @@ def calculate_stats(combo, min_temp, min_toughness):
         "temp": temp,
         "toughness": toughness,
         "heat_fail": heat_fail,
-        "vibration_fail": vibration_fail,
+        "success_chance": success_chance,
         "density": density,
         "strength": strength,
         "formability": formability
@@ -49,18 +47,17 @@ def find_best_for_scenario(scenario):
     max_units = scenario.get("MAX_UNITS", 5)
     max_cost = scenario.get("MAX_COST", 2500)
     min_temp = scenario.get("MIN_TEMP", 8)
-    min_toughness = scenario.get("MIN_TOUGHNESS", 13)
     
     print(f"\n=======================================================")
     print(f"SCENARIO: {scenario.get('name', 'Unnamed')}")
-    print(f"Budget: ${max_cost} | Min Temp: {min_temp} | Min Toughness: {min_toughness}")
+    print(f"Budget: ${max_cost} | Min Temp: {min_temp}")
     print(f"=======================================================")
     
     all_combos = list(itertools.combinations_with_replacement(MATERIALS, max_units))
     
     valid_combos = []
     for combo in all_combos:
-        stats = calculate_stats(combo, min_temp, min_toughness)
+        stats = calculate_stats(combo, min_temp)
         if stats["cost"] <= max_cost:
             valid_combos.append({
                 "combo": combo,
@@ -89,8 +86,8 @@ def find_best_for_scenario(scenario):
         
         print(f"{i+1}. Range: {stats['range']:,} | Cost: ${stats['cost']} | Stats: T:{stats['temp']}, Tgh:{stats['toughness']}, D:{stats['density']}, S:{stats['strength']}, F:{stats['formability']}")
         print(f"   Materials: {counts_str}")
-        if stats["vibration_fail"]:
-            print("   (WARNING: Toughness below threshold, range halved)")
+        if stats["success_chance"] < 100:
+            print(f"   (WARNING: {100 - stats['success_chance']:.0f}% chance of explosion due to low toughness)")
         print("-" * 20)
 
 if __name__ == "__main__":

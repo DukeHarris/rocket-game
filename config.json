@@ -97,15 +97,13 @@
             "MAX_UNITS": 5,
             "MAX_COST": 2500,
             "MIN_TEMP": 8,
-            "MIN_TOUGHNESS": 8,
             "MAX_RANGE": 90000
         },
         {
-            "name": "Scenario 2: Increased Min Temp & TGH",
+            "name": "Scenario 2: Increased Min Temp",
             "MAX_UNITS": 5,
             "MAX_COST": 2500,
             "MIN_TEMP": 13,
-            "MIN_TOUGHNESS": 13,
             "MAX_RANGE": 85000
         },
         {
@@ -113,7 +111,6 @@
             "MAX_UNITS": 5,
             "MAX_COST": 1800,
             "MIN_TEMP": 13,
-            "MIN_TOUGHNESS": 13,
             "MAX_RANGE": 85000
         }
     ]

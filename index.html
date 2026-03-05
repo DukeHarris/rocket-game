@@ -786,7 +786,7 @@
         // ── Configuration & State ───────────────────────────────
         let MATERIALS = [];
         let SCENARIOS = [];
-        let MAX_UNITS, MAX_COST, MIN_TEMP, MIN_TOUGHNESS, MAX_RANGE;
+        let MAX_UNITS, MAX_COST, MIN_TEMP, MAX_RANGE;
 
         // State
         let quantities = [];
@@ -880,17 +880,16 @@
 
             // Heat Check: temp must be >= 15, otherwise nozzle melts
             let heatFail = temp < MIN_TEMP;
-            // Acoustic Vibration Check: toughness must be >= 15, otherwise hull cracks
-            let vibrationFail = toughness < MIN_TOUGHNESS;
+
+            // Success chance based on toughness (14+ is 100%, <4 is 0%, +10% per point)
+            let successChance = Math.max(0, Math.min(100, (toughness - 4) * 10));
 
             // Apply checks
             if (heatFail) {
                 range = 0;
-            } else if (vibrationFail) {
-                range = Math.floor(range / 2);
             }
 
-            return { units, cost, temp, toughness, density, strength, formability, range, heatFail, vibrationFail };
+            return { units, cost, temp, toughness, density, strength, formability, range, heatFail, successChance };
         }
 
         // ── Update UI ───────────────────────────────────────────
@@ -987,7 +986,14 @@
             launchBtn.disabled = true;
 
             const t = computeTotals();
-            const range = t.range;
+            let range = t.range;
+
+            // Roll for mid-flight explosion due to toughness
+            let exploded = false;
+            if (!t.heatFail && Math.random() * 100 >= t.successChance) {
+                exploded = true;
+                range = Math.floor(range / 2);
+            }
 
             // Calculate how far the rocket should fly (percentage of sky height)
             const pct = Math.min(range / MAX_RANGE, 1);
@@ -1023,7 +1029,7 @@
                             spawnExplosion();
                             statusMessage.textContent = '🔥 Nozzle melted! The engine couldn\'t handle the heat.';
                             statusMessage.classList.add('fail', 'visible');
-                        } else if (t.vibrationFail) {
+                        } else if (exploded) {
                             spawnExplosion();
                             statusMessage.textContent = '💥 Hull cracked! Acoustic vibrations were too intense. Range halved!';
                             statusMessage.classList.add('warn', 'visible');
@@ -1195,7 +1201,6 @@
             MAX_UNITS = s.MAX_UNITS;
             MAX_COST = s.MAX_COST;
             MIN_TEMP = s.MIN_TEMP;
-            MIN_TOUGHNESS = s.MIN_TOUGHNESS;
             MAX_RANGE = s.MAX_RANGE;
         }
 
@@ -1213,7 +1218,6 @@
                         MAX_UNITS: data.CONFIG.MAX_UNITS,
                         MAX_COST: data.CONFIG.MAX_COST,
                         MIN_TEMP: data.CONFIG.MIN_TEMP,
-                        MIN_TOUGHNESS: data.CONFIG.MIN_TOUGHNESS,
                         MAX_RANGE: data.CONFIG.MAX_RANGE
                     }];
                 }

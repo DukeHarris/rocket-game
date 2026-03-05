@@ -10,7 +10,7 @@
     "MATERIALS": [
         {
             "name": "Stainless Steel",
-            "density": 1,
+            "density": 2,
             "strength": 3,
             "temp": 3,
             "toughness": 5,
@@ -22,15 +22,15 @@
             "density": 4,
             "strength": 3,
             "temp": 2,
-            "toughness": 3,
-            "formability": 5,
-            "cost": 150
+            "toughness": 2,
+            "formability": 4,
+            "cost": 350
         },
         {
             "name": "Magnesium Alloy",
             "density": 4,
             "strength": 1,
-            "temp": 2,
+            "temp": 3,
             "toughness": 2,
             "formability": 4,
             "cost": 200
@@ -46,7 +46,7 @@
         },
         {
             "name": "Inconel",
-            "density": 1,
+            "density": 3,
             "strength": 4,
             "temp": 4,
             "toughness": 5,
@@ -55,30 +55,30 @@
         },
         {
             "name": "Carbon Fiber",
-            "density": 5,
+            "density": 4,
             "strength": 5,
             "temp": 2,
-            "toughness": 3,
-            "formability": 2,
+            "toughness": 2,
+            "formability": 3,
             "cost": 500
         },
         {
             "name": "Silicon Carbide",
             "density": 3,
-            "strength": 2,
+            "strength": 3,
             "temp": 4,
             "toughness": 2,
-            "formability": 1,
-            "cost": 600
+            "formability": 2,
+            "cost": 400
         },
         {
             "name": "Tungsten",
-            "density": 1,
-            "strength": 2,
+            "density": 3,
+            "strength": 3,
             "temp": 5,
             "toughness": 2,
-            "formability": 1,
-            "cost": 700
+            "formability": 2,
+            "cost": 500
         },
         {
             "name": "Carbon-Carbon",
@@ -86,17 +86,17 @@
             "strength": 3,
             "temp": 5,
             "toughness": 2,
-            "formability": 1,
-            "cost": 800
+            "formability": 2,
+            "cost": 700
         },
         {
             "name": "Beryllium",
             "density": 5,
-            "strength": 4,
-            "temp": 2,
+            "strength": 5,
+            "temp": 3,
             "toughness": 1,
-            "formability": 1,
-            "cost": 1000
+            "formability": 2,
+            "cost": 800
         }
     ],
     "SCENARIOS": [

@@ -53,7 +53,9 @@ def find_best_for_scenario(scenario):
     print(f"Budget: ${max_cost} | Min Temp: {min_temp}")
     print(f"=======================================================")
     
-    all_combos = list(itertools.combinations_with_replacement(MATERIALS, max_units))
+    all_combos = []
+    for i in range(1, max_units + 1):
+        all_combos.extend(list(itertools.combinations_with_replacement(MATERIALS, i)))
     
     valid_combos = []
     for combo in all_combos:

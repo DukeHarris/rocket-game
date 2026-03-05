@@ -105,13 +105,6 @@
             "MAX_COST": 2500,
             "MIN_TEMP": 13,
             "MAX_RANGE": 85000
-        },
-        {
-            "name": "Scenario 3: Budget Cut",
-            "MAX_UNITS": 5,
-            "MAX_COST": 1800,
-            "MIN_TEMP": 13,
-            "MAX_RANGE": 85000
         }
     ]
 }

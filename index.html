@@ -700,7 +700,7 @@
     <div class="app">
         <header>
             <h1>🚀 Rocket Material Optimization System</h1>
-            <p id="header-subtitle">Select 5 material units to build your rocket and launch it into space!</p>
+            <p id="header-subtitle">Select up to 5 material units to build your rocket and launch it into space!</p>
         </header>
 
         <!-- ═══ PREPARATION PHASE ═══ -->
@@ -915,7 +915,7 @@
             valFormability.textContent = t.formability;
 
             // Check indicators
-            const unitsOk = t.units === MAX_UNITS;
+            const unitsOk = t.units > 0 && t.units <= MAX_UNITS;
             const costOk = t.cost <= MAX_COST;
 
             checkUnits.textContent = t.units > 0 ? (unitsOk ? ' ✅' : ' ❌') : '';
@@ -924,7 +924,7 @@
             // Color cost red if over budget
             valCost.style.color = (!costOk && t.cost > 0) ? 'var(--red)' : '';
 
-            // Enter launch phase button: only requires 5 units + cost under budget
+            // Enter launch phase button: only requires >0 and <=MAX_UNITS units + cost under budget
             const canEnterLaunch = unitsOk && costOk;
             enterLaunchBtn.disabled = !canEnterLaunch;
         }
@@ -952,7 +952,7 @@
             document.body.classList.remove('launch-mode');
             launchPhaseEl.classList.add('phase-hidden');
             prepPhaseEl.classList.remove('phase-hidden');
-            headerSubtitle.textContent = 'Select 5 material units to build your rocket hull and launch it into space!';
+            headerSubtitle.textContent = 'Select up to 5 material units to build your rocket hull and launch it into space!';
 
             resetLaunchVisuals();
         }

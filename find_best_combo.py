@@ -12,7 +12,7 @@ with open(config_path, "r") as f:
 MATERIALS = config_data["MATERIALS"]
 SCENARIOS = config_data.get("SCENARIOS", [])
 
-def calculate_stats(combo, min_temp):
+def calculate_stats(combo, min_temp, starting_budget):
     units = len(combo)
     cost = sum(m["cost"] for m in combo)
     temp = sum(m["temp"] for m in combo)
@@ -23,6 +23,10 @@ def calculate_stats(combo, min_temp):
     
     # Base range
     range_val = density * (strength + formability) * 100
+    
+    # Apply leftover budget to range (100$ = 500 extra range)
+    leftover = starting_budget - cost
+    range_val += (leftover / 100) * 500
     
     heat_fail = temp < min_temp
     success_chance = max(0.0, min(100.0, (toughness - 4) * 10))
@@ -45,12 +49,12 @@ def calculate_stats(combo, min_temp):
 
 def find_best_for_scenario(scenario):
     max_units = scenario.get("MAX_UNITS", 5)
-    max_cost = scenario.get("MAX_COST", 2500)
+    starting_budget = scenario.get("STARTING_BUDGET", 4500)
     min_temp = scenario.get("MIN_TEMP", 8)
     
     print(f"\n=======================================================")
     print(f"SCENARIO: {scenario.get('name', 'Unnamed')}")
-    print(f"Budget: ${max_cost} | Min Temp: {min_temp}")
+    print(f"Budget: ${starting_budget} | Min Temp: {min_temp}")
     print(f"=======================================================")
     
     all_combos = []
@@ -59,8 +63,8 @@ def find_best_for_scenario(scenario):
     
     valid_combos = []
     for combo in all_combos:
-        stats = calculate_stats(combo, min_temp)
-        if stats["cost"] <= max_cost:
+        stats = calculate_stats(combo, min_temp, starting_budget)
+        if stats["cost"] <= starting_budget:
             valid_combos.append({
                 "combo": combo,
                 "stats": stats
@@ -69,7 +73,7 @@ def find_best_for_scenario(scenario):
     # Sort by range (descending), then cost (ascending)
     valid_combos.sort(key=lambda x: (-x["stats"]["range"], x["stats"]["cost"]))
     
-    print(f"Total valid combinations (cost <= {max_cost}): {len(valid_combos)}")
+    print(f"Total valid combinations (cost <= {starting_budget}): {len(valid_combos)}")
     if not valid_combos:
         print("No valid combinations found for this scenario.")
         return

@@ -786,7 +786,7 @@
         // ── Configuration & State ───────────────────────────────
         let MATERIALS = [];
         let SCENARIOS = [];
-        let MAX_UNITS, MAX_COST, MIN_TEMP, MAX_RANGE;
+        let MAX_UNITS, STARTING_BUDGET, MIN_TEMP, MAX_RANGE;
 
         // State
         let quantities = [];
@@ -856,6 +856,13 @@
             const totalUnits = quantities.reduce((s, v) => s + v, 0);
             if (delta > 0 && totalUnits >= MAX_UNITS) return;
 
+            if (delta > 0) {
+                const currentCost = computeTotals().cost;
+                if (currentCost + MATERIALS[index].cost > STARTING_BUDGET) {
+                    return;
+                }
+            }
+
             quantities[index] = newVal;
             updateUI();
         }
@@ -877,6 +884,10 @@
             }
             // Base range
             let range = density * (strength + formability) * 100;
+
+            // Apply leftover budget to range (100$ = 500 extra range)
+            let leftover = STARTING_BUDGET - cost;
+            range += (leftover / 100) * 500;
 
             // Heat Check: temp must be >= 15, otherwise nozzle melts
             let heatFail = temp < MIN_TEMP;
@@ -902,12 +913,14 @@
                 const row = document.getElementById(`mat-row-${i}`);
                 row.classList.toggle('active', quantities[i] > 0);
                 document.getElementById(`minus-${i}`).disabled = quantities[i] <= 0;
-                document.getElementById(`plus-${i}`).disabled = t.units >= MAX_UNITS;
+
+                const canAfford = t.cost + MATERIALS[i].cost <= STARTING_BUDGET;
+                document.getElementById(`plus-${i}`).disabled = t.units >= MAX_UNITS || !canAfford;
             });
 
             // Dashboard values
             valUnits.textContent = `${t.units} / ${MAX_UNITS}`;
-            valCost.textContent = `$${t.cost.toLocaleString()}`;
+            valCost.textContent = `$${t.cost.toLocaleString()} / $${STARTING_BUDGET.toLocaleString()}`;
             valDensity.textContent = t.density;
             valStrength.textContent = t.strength;
             valTemp.textContent = t.temp;
@@ -916,16 +929,14 @@
 
             // Check indicators
             const unitsOk = t.units > 0 && t.units <= MAX_UNITS;
-            const costOk = t.cost <= MAX_COST;
 
             checkUnits.textContent = t.units > 0 ? (unitsOk ? ' ✅' : ' ❌') : '';
-            checkCost.textContent = t.cost > 0 ? (costOk ? ' ✅' : ' ❌') : '';
+            checkCost.textContent = '';
 
-            // Color cost red if over budget
-            valCost.style.color = (!costOk && t.cost > 0) ? 'var(--red)' : '';
+            valCost.style.color = '';
 
-            // Enter launch phase button: only requires >0 and <=MAX_UNITS units + cost under budget
-            const canEnterLaunch = unitsOk && costOk;
+            // Enter launch phase button: only requires >0 and <=MAX_UNITS units
+            const canEnterLaunch = unitsOk;
             enterLaunchBtn.disabled = !canEnterLaunch;
         }
 
@@ -1199,7 +1210,7 @@
         function setScenario(index) {
             const s = SCENARIOS[index];
             MAX_UNITS = s.MAX_UNITS;
-            MAX_COST = s.MAX_COST;
+            STARTING_BUDGET = s.STARTING_BUDGET !== undefined ? s.STARTING_BUDGET : (s.MAX_COST || 4500);
             MIN_TEMP = s.MIN_TEMP;
             MAX_RANGE = s.MAX_RANGE;
         }
@@ -1216,7 +1227,7 @@
                     data.SCENARIOS = [{
                         name: "Default Scenario",
                         MAX_UNITS: data.CONFIG.MAX_UNITS,
-                        MAX_COST: data.CONFIG.MAX_COST,
+                        STARTING_BUDGET: data.CONFIG.STARTING_BUDGET !== undefined ? data.CONFIG.STARTING_BUDGET : (data.CONFIG.MAX_COST || 4500),
                         MIN_TEMP: data.CONFIG.MIN_TEMP,
                         MAX_RANGE: data.CONFIG.MAX_RANGE
                     }];

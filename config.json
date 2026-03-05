@@ -95,14 +95,14 @@
         {
             "name": "Scenario 1: Base",
             "MAX_UNITS": 5,
-            "MAX_COST": 2500,
+            "STARTING_BUDGET": 4500,
             "MIN_TEMP": 8,
             "MAX_RANGE": 90000
         },
         {
             "name": "Scenario 2: Increased Min Temp",
             "MAX_UNITS": 5,
-            "MAX_COST": 2500,
+            "STARTING_BUDGET": 4500,
             "MIN_TEMP": 13,
             "MAX_RANGE": 85000
         }

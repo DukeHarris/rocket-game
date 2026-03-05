@@ -1,4 +1,12 @@
 {
+    "TEAMS": [
+        "ChatGPT",
+        "Claude",
+        "Gemini",
+        "Perplexity",
+        "DeepSeek",
+        "Copilot"
+    ],
     "MATERIALS": [
         {
             "name": "Stainless Steel",

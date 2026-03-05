@@ -715,7 +715,16 @@
                 <!-- Dashboard -->
                 <aside class="card dashboard" id="dashboard">
                     <h2 class="card-title">Mission Dashboard</h2>
-                    <div style="margin-bottom: 1.2rem;">
+                    <div id="team-container" style="margin-bottom: 1.2rem;">
+                        <label for="team-select"
+                            style="font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Team
+                            Name</label>
+                        <select id="team-select"
+                            style="width: 100%; padding: .6rem; margin-top: .5rem; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-family: 'Outfit', sans-serif;">
+                        </select>
+                    </div>
+
+                    <div id="scenario-container" style="margin-bottom: 1.2rem;">
                         <label for="scenario-select"
                             style="font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Scenario
                             Configuration</label>
@@ -755,6 +764,42 @@
                                     id="check-cost"></span></span>
                         </div>
                     </div>
+
+                    <div class="store-section"
+                        style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <h3
+                            style="font-size: .95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 1rem;">
+                            Mission Support Store</h3>
+                        <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+                            <div class="stat" style="padding: .6rem .8rem;">
+                                <div>
+                                    <div class="stat-label">Test Launch ($1,000)</div>
+                                </div>
+                                <div class="mat-controls">
+                                    <button id="minus-test-launch" aria-label="Remove Test Launch"
+                                        style="width: 28px; height: 28px; font-size: 1rem;">−</button>
+                                    <span class="mat-qty" id="qty-test-launch"
+                                        style="font-size: 1rem; min-width: 1.2rem;">0</span>
+                                    <button id="plus-test-launch" aria-label="Add Test Launch"
+                                        style="width: 28px; height: 28px; font-size: 1rem;">+</button>
+                                </div>
+                            </div>
+                            <div class="stat" style="padding: .6rem .8rem;">
+                                <div>
+                                    <div class="stat-label">Property Desc. ($1,000)</div>
+                                </div>
+                                <div class="mat-controls">
+                                    <button id="minus-prop-desc" aria-label="Remove Property Description"
+                                        style="width: 28px; height: 28px; font-size: 1rem;">−</button>
+                                    <span class="mat-qty" id="qty-prop-desc"
+                                        style="font-size: 1rem; min-width: 1.2rem;">0</span>
+                                    <button id="plus-prop-desc" aria-label="Add Property Description"
+                                        style="width: 28px; height: 28px; font-size: 1rem;">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <button class="launch-btn" id="enter-launch-btn" disabled>🚀 Enter Launch Phase</button>
                     <button class="reset-btn" id="reset-btn">Reset Selection</button>
                 </aside>
@@ -765,7 +810,7 @@
         <div id="launch-phase" class="phase-hidden">
             <div class="launch-phase-wrapper">
                 <section class="launch-area card" id="launch-area">
-                    <h2 class="card-title">Launch Pad</h2>
+                    <h2 class="card-title" id="launch-pad-title">Launch Pad</h2>
                     <div class="sky" id="sky">
                         <span class="rocket" id="rocket">🚀</span>
                     </div>
@@ -784,12 +829,15 @@
 
     <script>
         // ── Configuration & State ───────────────────────────────
+        let TEAMS = [];
         let MATERIALS = [];
         let SCENARIOS = [];
         let MAX_UNITS, STARTING_BUDGET, MIN_TEMP, MAX_RANGE;
 
         // State
         let quantities = [];
+        let testLaunchesBought = 0;
+        let propertyDescriptionsBought = 0;
         let currentPhase = 'preparation'; // 'preparation' or 'launch'
 
 
@@ -816,6 +864,13 @@
         const prepPhaseEl = document.getElementById('preparation-phase');
         const launchPhaseEl = document.getElementById('launch-phase');
         const headerSubtitle = document.getElementById('header-subtitle');
+        const launchPadTitle = document.getElementById('launch-pad-title');
+        const qtyTestLaunch = document.getElementById('qty-test-launch');
+        const qtyPropDesc = document.getElementById('qty-prop-desc');
+        const plusTestLaunch = document.getElementById('plus-test-launch');
+        const minusTestLaunch = document.getElementById('minus-test-launch');
+        const plusPropDesc = document.getElementById('plus-prop-desc');
+        const minusPropDesc = document.getElementById('minus-prop-desc');
 
         // ── Build Material Rows ─────────────────────────────────
         function buildMaterialList() {
@@ -867,6 +922,25 @@
             updateUI();
         }
 
+        function changeStoreQty(item, delta) {
+            if (item === 'testLaunch') {
+                const newVal = testLaunchesBought + delta;
+                if (newVal < 0) return;
+
+                if (delta > 0 && computeTotals().cost + 1000 > STARTING_BUDGET) return;
+
+                testLaunchesBought = newVal;
+            } else if (item === 'propDesc') {
+                const newVal = propertyDescriptionsBought + delta;
+                if (newVal < 0) return;
+
+                if (delta > 0 && computeTotals().cost + 1000 > STARTING_BUDGET) return;
+
+                propertyDescriptionsBought = newVal;
+            }
+            updateUI();
+        }
+
         // ── Compute Totals ──────────────────────────────────────
         function computeTotals() {
             let units = 0, cost = 0, temp = 0, toughness = 0, density = 0, strength = 0, formability = 0;
@@ -882,6 +956,11 @@
                 strength += q * m.strength;
                 formability += q * m.formability;
             }
+
+            // Store items cost
+            cost += testLaunchesBought * 1000;
+            cost += propertyDescriptionsBought * 1000;
+
             // Base range
             let range = density * (strength + formability) * 100;
 
@@ -927,6 +1006,19 @@
             valTough.textContent = t.toughness;
             valFormability.textContent = t.formability;
 
+            // Update store UI
+            if (qtyTestLaunch) {
+                qtyTestLaunch.textContent = testLaunchesBought;
+                minusTestLaunch.disabled = testLaunchesBought <= 0;
+                plusTestLaunch.disabled = t.cost + 1000 > STARTING_BUDGET;
+            }
+
+            if (qtyPropDesc) {
+                qtyPropDesc.textContent = propertyDescriptionsBought;
+                minusPropDesc.disabled = propertyDescriptionsBought <= 0;
+                plusPropDesc.disabled = t.cost + 1000 > STARTING_BUDGET;
+            }
+
             // Check indicators
             const unitsOk = t.units > 0 && t.units <= MAX_UNITS;
 
@@ -947,6 +1039,15 @@
             prepPhaseEl.classList.add('phase-hidden');
             launchPhaseEl.classList.remove('phase-hidden');
             headerSubtitle.textContent = 'Prepare for launch!';
+
+            const teamSelect = document.getElementById('team-select');
+            let teamName = "Your Team";
+            if (teamSelect && teamSelect.value) {
+                teamName = teamSelect.value;
+            }
+            if (launchPadTitle) {
+                launchPadTitle.textContent = `Launch Pad - ${teamName}`;
+            }
 
             // Reset launch visualization
             resetLaunchVisuals();
@@ -1197,6 +1298,8 @@
 
         function resetAll() {
             quantities.fill(0);
+            testLaunchesBought = 0;
+            propertyDescriptionsBought = 0;
             resetLaunchVisuals();
             updateUI();
         }
@@ -1206,6 +1309,11 @@
         launchBtn.addEventListener('click', launch);
         backBtn.addEventListener('click', backToPreparation);
         resetBtn.addEventListener('click', resetAll);
+
+        if (plusTestLaunch) plusTestLaunch.addEventListener('click', () => changeStoreQty('testLaunch', 1));
+        if (minusTestLaunch) minusTestLaunch.addEventListener('click', () => changeStoreQty('testLaunch', -1));
+        if (plusPropDesc) plusPropDesc.addEventListener('click', () => changeStoreQty('propDesc', 1));
+        if (minusPropDesc) minusPropDesc.addEventListener('click', () => changeStoreQty('propDesc', -1));
 
         function setScenario(index) {
             const s = SCENARIOS[index];
@@ -1233,8 +1341,21 @@
                     }];
                 }
 
+                TEAMS = data.TEAMS || [];
                 MATERIALS = data.MATERIALS || [];
                 SCENARIOS = data.SCENARIOS || [];
+
+                const teamSelect = document.getElementById('team-select');
+                if (teamSelect && TEAMS.length > 0) {
+                    TEAMS.forEach((team) => {
+                        const opt = document.createElement('option');
+                        opt.value = team;
+                        opt.textContent = team;
+                        teamSelect.appendChild(opt);
+                    });
+                } else if (teamSelect) {
+                    document.getElementById('team-container').style.display = 'none';
+                }
 
                 const scenarioSelect = document.getElementById('scenario-select');
                 if (scenarioSelect) {
